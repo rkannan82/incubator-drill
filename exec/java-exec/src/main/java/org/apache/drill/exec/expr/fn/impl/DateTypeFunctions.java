@@ -323,6 +323,41 @@ public class DateTypeFunctions {
         }
     }
 
+    @FunctionTemplate(name = "unix_timestamp", scope = FunctionTemplate.FunctionScope.SIMPLE, nulls = NullHandling.NULL_IF_NULL)
+    public static class CurrentUnixTimeStamp implements DrillSimpleFunc {
+        @Workspace long queryStartTime;
+        @Output BigIntHolder out;
+
+        public void setup(RecordBatch incoming) {
+            queryStartTime = incoming.getContext().getQueryStartTime();
+        }
+
+        public void eval() {
+            out.value = queryStartTime;
+        }
+    }
+
+    @FunctionTemplate(name = "unix_timestamp", scope = FunctionTemplate.FunctionScope.SIMPLE, nulls = NullHandling.NULL_IF_NULL)
+    public static class UnixTimeStampSince implements DrillSimpleFunc {
+        @Param VarCharHolder in;
+        @Output BigIntHolder out;
+
+        public void setup(RecordBatch incoming) {
+        }
+
+        public void eval() {
+          // Note: Code taken from CastVarCharToTimestamp.java
+          byte[] buf = new byte[in.end - in.start];
+          in.buffer.getBytes(in.start, buf, 0, in.end - in.start);
+          String input = new String(buf, com.google.common.base.Charsets.UTF_8);
+
+          org.joda.time.format.DateTimeFormatter f = org.apache.drill.exec.expr.fn.impl.DateUtility.getDateTimeFormatter();
+          // TODO Timezone hardcoded to UTC. When timezone support is added, it
+          // should take the timezone of the server.
+          out.value = org.joda.time.DateTime.parse(input, f).withZoneRetainFields(org.joda.time.DateTimeZone.UTC).getMillis();
+        }
+    }
+
     @SuppressWarnings("unused")
     @FunctionTemplate(names = {"date_add", "add"}, scope = FunctionTemplate.FunctionScope.SIMPLE, nulls=NullHandling.NULL_IF_NULL)
     public static class DateTimeAddFunction implements DrillSimpleFunc {

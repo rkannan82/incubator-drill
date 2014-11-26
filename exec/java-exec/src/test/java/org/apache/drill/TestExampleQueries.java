@@ -567,4 +567,14 @@ public class TestExampleQueries extends BaseTestQuery{
         expectedRecordCount, actualRecordCount), expectedRecordCount, actualRecordCount);
   }
 
+  @Test
+  public void testCurrentUnixTimestamp() throws Exception {
+    test("select unix_timestamp() from cp.`tpch/nation.parquet` limit 1");
+  }
+
+  @Test
+  public void testUnixTimestampSince() throws Exception {
+    test("select unix_timestamp('2014-11-24 21:00:00') from cp.`tpch/nation.parquet` limit 1");
+  }
+
 }
